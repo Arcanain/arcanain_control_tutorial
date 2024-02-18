@@ -15,15 +15,14 @@ find_package(CasADi REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(PythonLibs REQUIRED)
 
-# cartpole_mpc_control
-add_executable(cartpole_mpc_control src/03_cartpole_mpc_control.cpp)
-ament_target_dependencies(cartpole_mpc_control rclcpp)
-target_include_directories(cartpole_mpc_control PRIVATE
+# casadi_optimization_example
+add_executable(casadi_optimization_example src/01_casadi_optimization_example.cpp)
+ament_target_dependencies(casadi_optimization_example rclcpp)
+target_include_directories(casadi_optimization_example PRIVATE
   ${CASADI_INCLUDE_DIR}
 )
-target_link_libraries(cartpole_mpc_control
+target_link_libraries(casadi_optimization_example
   ${CASADI_LIBRARIES}
-  ${PYTHON_LIBRARIES}
   /usr/local/lib/libcasadi.so
 )
 
@@ -38,22 +37,36 @@ target_link_libraries(car_race_node
   /usr/local/lib/libcasadi.so
 )
 
-# casadi_optimization_example
-add_executable(casadi_optimization_example src/01_casadi_optimization_example.cpp)
-ament_target_dependencies(casadi_optimization_example rclcpp)
-target_include_directories(casadi_optimization_example PRIVATE
+# cartpole_mpc_control
+add_executable(cartpole_mpc_control src/03_cartpole_mpc_control.cpp)
+ament_target_dependencies(cartpole_mpc_control rclcpp)
+target_include_directories(cartpole_mpc_control PRIVATE
   ${CASADI_INCLUDE_DIR}
 )
-target_link_libraries(casadi_optimization_example
+target_link_libraries(cartpole_mpc_control
   ${CASADI_LIBRARIES}
+  ${PYTHON_LIBRARIES}
+  /usr/local/lib/libcasadi.so
+)
+
+# lateral_car_mpc_control
+add_executable(lateral_car_mpc_control src/04_lateral_car_mpc_control.cpp)
+ament_target_dependencies(lateral_car_mpc_control rclcpp)
+target_include_directories(lateral_car_mpc_control PRIVATE
+  ${CASADI_INCLUDE_DIR}
+)
+target_link_libraries(lateral_car_mpc_control
+  ${CASADI_LIBRARIES}
+  ${PYTHON_LIBRARIES}
   /usr/local/lib/libcasadi.so
 )
 
 # Install Cpp executables
 install(TARGETS
-  cartpole_mpc_control
-  car_race_node
   casadi_optimization_example
+  car_race_node
+  cartpole_mpc_control
+  lateral_car_mpc_control
   DESTINATION lib/${PROJECT_NAME}
 )
 
