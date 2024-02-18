@@ -7,7 +7,7 @@ class OptiNode : public rclcpp::Node
 {
 public:
   OptiNode()
-  : Node("casadi_opti_example")
+  : Node("casadi_optimization_example")
   {
     // Optiインスタンスを作成
     casadi::Opti opti;

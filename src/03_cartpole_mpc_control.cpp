@@ -13,7 +13,7 @@ class MPCNode : public rclcpp::Node
 {
 public:
   MPCNode()
-  : Node("cartpole_mpc")
+  : Node("cartpole_mpc_control")
   {
     // システムパラメータの設定
     dt = 0.1;

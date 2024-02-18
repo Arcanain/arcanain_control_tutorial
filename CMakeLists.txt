@@ -15,20 +15,20 @@ find_package(CasADi REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(PythonLibs REQUIRED)
 
-# cartpole_mpc
-add_executable(cartpole_mpc src/cartpole_mpc.cpp)
-ament_target_dependencies(cartpole_mpc rclcpp)
-target_include_directories(cartpole_mpc PRIVATE
+# cartpole_mpc_control
+add_executable(cartpole_mpc_control src/03_cartpole_mpc_control.cpp)
+ament_target_dependencies(cartpole_mpc_control rclcpp)
+target_include_directories(cartpole_mpc_control PRIVATE
   ${CASADI_INCLUDE_DIR}
 )
-target_link_libraries(cartpole_mpc
+target_link_libraries(cartpole_mpc_control
   ${CASADI_LIBRARIES}
   ${PYTHON_LIBRARIES}
   /usr/local/lib/libcasadi.so
 )
 
 # car_race_node
-add_executable(car_race_node src/car_race_node.cpp)
+add_executable(car_race_node src/02_car_race_node.cpp)
 ament_target_dependencies(car_race_node rclcpp)
 target_include_directories(car_race_node PRIVATE
   ${CASADI_INCLUDE_DIR}
@@ -38,22 +38,22 @@ target_link_libraries(car_race_node
   /usr/local/lib/libcasadi.so
 )
 
-# casadi_opti_example
-add_executable(casadi_opti_example src/casadi_opti_example.cpp)
-ament_target_dependencies(casadi_opti_example rclcpp)
-target_include_directories(casadi_opti_example PRIVATE
+# casadi_optimization_example
+add_executable(casadi_optimization_example src/01_casadi_optimization_example.cpp)
+ament_target_dependencies(casadi_optimization_example rclcpp)
+target_include_directories(casadi_optimization_example PRIVATE
   ${CASADI_INCLUDE_DIR}
 )
-target_link_libraries(casadi_opti_example
+target_link_libraries(casadi_optimization_example
   ${CASADI_LIBRARIES}
   /usr/local/lib/libcasadi.so
 )
 
 # Install Cpp executables
 install(TARGETS
-  cartpole_mpc
+  cartpole_mpc_control
   car_race_node
-  casadi_opti_example
+  casadi_optimization_example
   DESTINATION lib/${PROJECT_NAME}
 )
 
