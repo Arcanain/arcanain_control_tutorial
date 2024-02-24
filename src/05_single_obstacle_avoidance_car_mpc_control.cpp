@@ -53,21 +53,23 @@ public:
     double A65 = -2 * (Kf + Kr) / (M * V);
     double A66 = -2 * (Kf * lf + Kr * lr) / (M * V);
 
-    A = casadi::DM::eye(nx) + casadi::DM({{0.0, 0.0, 0.0, 1.0, 0.0, 0.0},
-                            {0.0, 0.0, 0.0, 0.0, 1.0, 0.0},
-                            {0.0, 0.0, 0.0, 0.0, 0.0, 1.0},
-                            {0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
-                            {0.0, 0.0, A53, 0.0, A55, A56},
-                            {0.0, 0.0, A63, 0.0, A65, A66}}) * dt;
+    A = casadi::DM::eye(nx) + casadi::DM(
+      {{0.0, 0.0, 0.0, 1.0, 0.0, 0.0},
+        {0.0, 0.0, 0.0, 0.0, 1.0, 0.0},
+        {0.0, 0.0, 0.0, 0.0, 0.0, 1.0},
+        {0.0, 0.0, 0.0, 0.0, 0.0, 0.0},
+        {0.0, 0.0, A53, 0.0, A55, A56},
+        {0.0, 0.0, A63, 0.0, A65, A66}}) * dt;
 
     double B51 = 2 * Kf / M;
     double B61 = 2 * Kf * lf / I;
-    B = casadi::DM({{0.0, 0.0}, 
-            {0.0, 0.0},
-            {0.0, 0.0},
-            {0.0, 1.0},
-            {B51, 0.0}, 
-            {B61, 0.0}}) * dt;
+    B = casadi::DM(
+      {{0.0, 0.0},
+        {0.0, 0.0},
+        {0.0, 0.0},
+        {0.0, 1.0},
+        {B51, 0.0},
+        {B61, 0.0}}) * dt;
 
     // 初期状態の設定
     xTrue = casadi::DM({0.0, 0.0, 0.0, 0.0, 0.0, 0.0});
@@ -88,7 +90,7 @@ public:
     // MPCの実行タイマー
     timer_ = this->create_wall_timer(
       std::chrono::milliseconds(static_cast<int>(dt * 1000)), std::bind(&MPCNode::mpc_step, this));
-    
+
     // 静的な変換を送信するタイマー
     static_broadcaster_ = std::make_shared<tf2_ros::StaticTransformBroadcaster>(this);
     send_static_transform();
@@ -134,22 +136,23 @@ private:
     // ダイナミクス制約条件を定義
     opti.subject_to(x(Slice(), 0) == xTrue);
     for (int i = 0; i < N; ++i) {
-       opti.subject_to(x(Slice(), i + 1) == mtimes(A, x(Slice(), i)) + mtimes(B, u(Slice(), i)));
-       opti.subject_to(xmin <= x(Slice(), i));
-       opti.subject_to(x(Slice(), i) <= xmax);
-       opti.subject_to(umin <= u(i));
-       opti.subject_to(u(i) <= umax);
+      opti.subject_to(x(Slice(), i + 1) == mtimes(A, x(Slice(), i)) + mtimes(B, u(Slice(), i)));
+      opti.subject_to(xmin <= x(Slice(), i));
+      opti.subject_to(x(Slice(), i) <= xmax);
+      opti.subject_to(umin <= u(i));
+      opti.subject_to(u(i) <= umax);
     }
     opti.subject_to(xmin <= x(Slice(), N));
     opti.subject_to(x(Slice(), N) <= xmax);
 
     // 障害物制約条件を定義
     for (int i = 0; i < N; ++i) {
-        casadi::MX distance = mtimes((x(Slice(0, 2), i) - obs_pos).T(), (x(Slice(0, 2), i) - obs_pos)) - obs_r * obs_r;
-        opti.subject_to(distance >= delta(0, i));
-        cost += delta(0, i) * p * delta(0, i);
+      casadi::MX distance =
+        mtimes((x(Slice(0, 2), i) - obs_pos).T(), (x(Slice(0, 2), i) - obs_pos)) - obs_r * obs_r;
+      opti.subject_to(distance >= delta(0, i));
+      cost += delta(0, i) * p * delta(0, i);
     }
-        
+
     // 最適化問題を解く
     opti.minimize(cost);
     opti.solver("ipopt");
@@ -167,21 +170,21 @@ private:
     return uopt;
   }
 
-  void publish_transform_and_path(const casadi::DM& xTrue)
+  void publish_transform_and_path(const casadi::DM & xTrue)
   {
     // 結果を格納
-    x   = xTrue(0).scalar();
-    y   = xTrue(1).scalar();
-    th  = xTrue(2).scalar();
-    dx  = xTrue(3).scalar();
-    dy  = xTrue(4).scalar();
+    x = xTrue(0).scalar();
+    y = xTrue(1).scalar();
+    th = xTrue(2).scalar();
+    dx = xTrue(3).scalar();
+    dy = xTrue(4).scalar();
     dth = xTrue(5).scalar();
 
     // 座標変換（odom to base_link）
     tf2::Quaternion odom_quat;
     odom_quat.setRPY(0, 0, th);  // ロール、ピッチ、ヨーをセット
     geometry_msgs::msg::Quaternion odom_quat_msg =
-        tf2::toMsg(odom_quat);  // tf2::Quaternionからgeometry_msgs::msg::Quaternionに変換
+      tf2::toMsg(odom_quat);    // tf2::Quaternionからgeometry_msgs::msg::Quaternionに変換
 
     geometry_msgs::msg::TransformStamped odom_trans;
     odom_trans.header.stamp = current_time;
@@ -228,7 +231,7 @@ private:
     static_broadcaster_->sendTransform(static_transform_stamped);
   }
 
-  rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr path_pub; 
+  rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr path_pub;
   rclcpp::TimerBase::SharedPtr timer_;
   std::shared_ptr<tf2_ros::TransformBroadcaster> odom_broadcaster;
   std::shared_ptr<tf2_ros::StaticTransformBroadcaster> static_broadcaster_;
