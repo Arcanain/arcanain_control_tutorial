@@ -244,7 +244,7 @@ private:
   double dt;
   int nx, nu, N;
   casadi::DM A, B, Q, R, P, xTrue;
-  casadi::DM xmin, xmax, umin, umax;
+  casadi::DM umin, umax;
   casadi::DM xTarget;
   std::vector<casadi::DM> obs_pos_list;
   casadi::DM vehicle_diameter, obs_diameter, obs_r, p;

@@ -30,8 +30,8 @@ public:
     p = 200;
 
     // 制約の設定
-    umin = casadi::DM({-5, -1});
-    umax = casadi::DM({5, 1});
+    umin = casadi::DM({-2, -1});
+    umax = casadi::DM({2, 1});
 
     // 初期状態の設定
     xTrue = casadi::DM({0.0, 0.0, 0.0});
@@ -79,12 +79,7 @@ private:
     casadi::DM uopt = solve_mpc(xTrue);
 
     // 状態の更新
-    A = casadi::DM::eye(nx);
-    B = casadi::DM(
-        {{dt * cos(xTrue(2).scalar()), 0.0},
-        {dt * sin(xTrue(2).scalar()), 0.0},
-        {0.0, dt}});
-    xTrue = mtimes(A, xTrue) + mtimes(B, uopt);
+    xTrue = update_state(xTrue, uopt);
 
     // 座標変換とパス出力
     publish_transform_and_path(xTrue);
@@ -148,6 +143,16 @@ private:
     RCLCPP_INFO_STREAM(this->get_logger(), "Jopt: " << sol.value(cost));
 
     return uopt;
+  }
+
+  casadi::DM update_state(const casadi::DM& xTrue, const casadi::DM& uopt) {
+    casadi::DM A = casadi::DM::eye(nx);
+    casadi::DM B = casadi::DM(
+        {{dt * cos(xTrue(2).scalar()), 0.0},
+        {dt * sin(xTrue(2).scalar()), 0.0},
+        {0.0, dt}});
+    casadi::DM xUpdated = mtimes(A, xTrue) + mtimes(B, uopt);
+    return xUpdated;
   }
 
   void publish_transform_and_path(const casadi::DM & xTrue)
@@ -216,12 +221,11 @@ private:
   rclcpp::Time current_time, last_time;
   double dt;
   int nx, nu, N;
-  double v, w;
   casadi::DM A, B, Q, R, P, xTrue;
-  casadi::DM xmin, xmax, umin, umax;
+  casadi::DM umin, umax;
   casadi::DM xTarget;
   casadi::DM obs_pos, vehicle_diameter, obs_diameter, obs_r, p;
-  double x, y, th, dx, dy, dth;
+  double x, y, th;
 };
 
 int main(int argc, char ** argv)
