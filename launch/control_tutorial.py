@@ -33,10 +33,17 @@ def generate_launch_description():
         output="screen",
     )
 
+    single_obstacle_avoidance_mobile_robot_mpc_control_node = Node(
+        package=package_name,
+        executable='single_obstacle_avoidance_mobile_robot_mpc_control',
+        output="screen",
+    )
+
     nodes = [
         rviz_node,
         single_obstacle_avoidance_car_mpc_control_node,
         multiple_obstacle_avoidance_car_mpc_control_node,
+        single_obstacle_avoidance_mobile_robot_mpc_control_node,
     ]
 
     return LaunchDescription(nodes)

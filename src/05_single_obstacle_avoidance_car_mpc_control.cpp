@@ -3,7 +3,6 @@
 #include <iostream>
 #include <vector>
 
-#include "arcanain_control_tutorial/matplotlibcpp.h"
 #include "rclcpp/rclcpp.hpp"
 #include "geometry_msgs/msg/transform_stamped.hpp"
 #include "nav_msgs/msg/path.hpp"
@@ -13,7 +12,6 @@
 #include "tf2_ros/transform_broadcaster.h"
 
 using namespace casadi;
-namespace plt = matplotlibcpp;
 
 class MPCNode : public rclcpp::Node
 {
@@ -98,6 +96,9 @@ public:
     // 時刻の初期化
     current_time = this->get_clock()->now();
     last_time = this->get_clock()->now();
+
+    // 座標変換とパス出力
+    publish_transform_and_path(xTrue);
   }
 
 private:

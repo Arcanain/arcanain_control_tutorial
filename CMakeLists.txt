@@ -89,6 +89,18 @@ target_link_libraries(multiple_obstacle_avoidance_car_mpc_control
   /usr/local/lib/libcasadi.so
 )
 
+# 07_single_obstacle_avoidance_mobile_robot_mpc_control
+add_executable(single_obstacle_avoidance_mobile_robot_mpc_control src/07_single_obstacle_avoidance_mobile_robot_mpc_control.cpp)
+ament_target_dependencies(single_obstacle_avoidance_mobile_robot_mpc_control rclcpp tf2_geometry_msgs tf2_ros nav_msgs geometry_msgs)
+target_include_directories(single_obstacle_avoidance_mobile_robot_mpc_control PRIVATE
+  ${CASADI_INCLUDE_DIR}
+)
+target_link_libraries(single_obstacle_avoidance_mobile_robot_mpc_control
+  ${CASADI_LIBRARIES}
+  ${PYTHON_LIBRARIES}
+  /usr/local/lib/libcasadi.so
+)
+
 # Install Cpp executables
 install(TARGETS
   casadi_optimization_example
@@ -97,6 +109,7 @@ install(TARGETS
   lateral_car_mpc_control
   single_obstacle_avoidance_car_mpc_control
   multiple_obstacle_avoidance_car_mpc_control
+  single_obstacle_avoidance_mobile_robot_mpc_control
   DESTINATION lib/${PROJECT_NAME}
 )
 
