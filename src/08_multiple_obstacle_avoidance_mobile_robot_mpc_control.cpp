@@ -42,9 +42,9 @@ public:
     // システム行列の設定
     A = casadi::DM::eye(nx);
     B = casadi::DM(
-    {{dt * cos(xTrue(2).scalar()), 0.0},
-     {dt * sin(xTrue(2).scalar()), 0.0},
-     {0.0, dt}});
+      {{dt * cos(xTrue(2).scalar()), 0.0},
+        {dt * sin(xTrue(2).scalar()), 0.0},
+        {0.0, dt}});
 
     // 障害物の設定
     std::vector<casadi::DM> obs_pos_list = {{3.0, 0.0}, {4.0, 0.0}, {4.0, 1.0}};
@@ -53,7 +53,8 @@ public:
     obs_r = vehicle_diameter + obs_diameter;
 
     // 実経路のPublish
-    path_pub = this->create_publisher<nav_msgs::msg::Path>("multiple_obstacle_mobile_robot_path", 50);
+    path_pub =
+      this->create_publisher<nav_msgs::msg::Path>("multiple_obstacle_mobile_robot_path", 50);
     odom_broadcaster = std::make_shared<tf2_ros::TransformBroadcaster>(*this);
 
     // MPCの実行タイマー
@@ -110,23 +111,29 @@ private:
     // ダイナミクス制約条件を定義
     opti.subject_to(x(Slice(), 0) == xTrue);
     for (int i = 0; i < N; ++i) {
-        casadi::MX Ai = casadi::MX::eye(nx);
-        casadi::MX Bi = casadi::MX::vertcat({
-            casadi::MX::horzcat({dt * cos(x(2, i)), 0.0}),
-            casadi::MX::horzcat({dt * sin(x(2, i)), 0.0}),
-            casadi::MX::horzcat({0.0, dt})
-        });
+      casadi::MX Ai = casadi::MX::eye(nx);
+      casadi::MX Bi = casadi::MX::vertcat(
+      {
+        casadi::MX::horzcat({dt * cos(x(2, i)), 0.0}),
+        casadi::MX::horzcat({dt * sin(x(2, i)), 0.0}),
+        casadi::MX::horzcat({0.0, dt})
+      });
 
-        opti.subject_to(x(Slice(), i + 1) == mtimes(Ai, x(Slice(), i)) + mtimes(Bi, u(Slice(), i)));
-        opti.subject_to(umin <= u(i));
-        opti.subject_to(u(i) <= umax);
+      opti.subject_to(x(Slice(), i + 1) == mtimes(Ai, x(Slice(), i)) + mtimes(Bi, u(Slice(), i)));
+      opti.subject_to(umin <= u(i));
+      opti.subject_to(u(i) <= umax);
     }
 
     // 障害物制約条件を定義
     for (int i = 0; i < N; ++i) {
       for (int j = 0; j < num_obstacles; ++j) {
         const auto & obs_pos = obs_pos_list[j];
-        casadi::MX distance = mtimes((x(Slice(0, 2), i) - obs_pos).T(), (x(Slice(0, 2), i) - obs_pos)) - obs_r * obs_r;
+        casadi::MX distance = mtimes(
+          (x(Slice(0, 2), i) - obs_pos).T(), (x(
+            Slice(
+              0,
+              2),
+            i) - obs_pos)) - obs_r * obs_r;
         opti.subject_to(distance >= delta(j, i));      // 各障害物に対するスラック変数
         cost += delta(j, i) * p * delta(j, i);         // スラック変数に対するペナルティ項
       }
@@ -149,10 +156,11 @@ private:
     return uopt;
   }
 
-  casadi::DM update_state(const casadi::DM& xTrue, const casadi::DM& uopt) {
+  casadi::DM update_state(const casadi::DM & xTrue, const casadi::DM & uopt)
+  {
     casadi::DM A = casadi::DM::eye(nx);
     casadi::DM B = casadi::DM(
-        {{dt * cos(xTrue(2).scalar()), 0.0},
+      {{dt * cos(xTrue(2).scalar()), 0.0},
         {dt * sin(xTrue(2).scalar()), 0.0},
         {0.0, dt}});
     casadi::DM xUpdated = mtimes(A, xTrue) + mtimes(B, uopt);

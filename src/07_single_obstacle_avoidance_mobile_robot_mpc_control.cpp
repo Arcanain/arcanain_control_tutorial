@@ -23,7 +23,7 @@ public:
     dt = 0.1;
     nx = 3;
     nu = 2;
-    N = 10;
+    N = 20;
     P = 200 * casadi::DM::eye(nx);
     Q = casadi::DM::diag(casadi::DM({1.0, 1.0, 10.0}));
     R = casadi::DM::diag(casadi::DM({1.0, 5.0}));
@@ -37,14 +37,14 @@ public:
     xTrue = casadi::DM({0.0, 0.0, 0.0});
 
     // 目標値
-    xTarget = casadi::DM({6.0, 1.0, 0.0});
+    xTarget = casadi::DM({6.0, 0.0, 0.0});
 
     // システム行列の設定
     A = casadi::DM::eye(nx);
     B = casadi::DM(
-    {{dt * cos(xTrue(2).scalar()), 0.0},
-     {dt * sin(xTrue(2).scalar()), 0.0},
-     {0.0, dt}});
+      {{dt * cos(xTrue(2).scalar()), 0.0},
+        {dt * sin(xTrue(2).scalar()), 0.0},
+        {0.0, dt}});
 
     // 障害物の設定
     obs_pos = casadi::DM({3.0, 0.0});
@@ -108,16 +108,17 @@ private:
     // ダイナミクス制約条件を定義
     opti.subject_to(x(Slice(), 0) == xTrue);
     for (int i = 0; i < N; ++i) {
-        casadi::MX Ai = casadi::MX::eye(nx);
-        casadi::MX Bi = casadi::MX::vertcat({
-            casadi::MX::horzcat({dt * cos(x(2, i)), 0.0}),
-            casadi::MX::horzcat({dt * sin(x(2, i)), 0.0}),
-            casadi::MX::horzcat({0.0, dt})
-        });
+      casadi::MX Ai = casadi::MX::eye(nx);
+      casadi::MX Bi = casadi::MX::vertcat(
+      {
+        casadi::MX::horzcat({dt * cos(x(2, i)), 0.0}),
+        casadi::MX::horzcat({dt * sin(x(2, i)), 0.0}),
+        casadi::MX::horzcat({0.0, dt})
+      });
 
-        opti.subject_to(x(Slice(), i + 1) == mtimes(Ai, x(Slice(), i)) + mtimes(Bi, u(Slice(), i)));
-        opti.subject_to(umin <= u(i));
-        opti.subject_to(u(i) <= umax);
+      opti.subject_to(x(Slice(), i + 1) == mtimes(Ai, x(Slice(), i)) + mtimes(Bi, u(Slice(), i)));
+      opti.subject_to(umin <= u(i));
+      opti.subject_to(u(i) <= umax);
     }
 
     // 障害物制約条件を定義
@@ -145,10 +146,11 @@ private:
     return uopt;
   }
 
-  casadi::DM update_state(const casadi::DM& xTrue, const casadi::DM& uopt) {
+  casadi::DM update_state(const casadi::DM & xTrue, const casadi::DM & uopt)
+  {
     casadi::DM A = casadi::DM::eye(nx);
     casadi::DM B = casadi::DM(
-        {{dt * cos(xTrue(2).scalar()), 0.0},
+      {{dt * cos(xTrue(2).scalar()), 0.0},
         {dt * sin(xTrue(2).scalar()), 0.0},
         {0.0, dt}});
     casadi::DM xUpdated = mtimes(A, xTrue) + mtimes(B, uopt);

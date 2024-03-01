@@ -146,7 +146,12 @@ private:
     for (int i = 0; i < N; ++i) {
       for (int j = 0; j < num_obstacles; ++j) {
         const auto & obs_pos = obs_pos_list[j];
-        casadi::MX distance = mtimes((x(Slice(0, 2), i) - obs_pos).T(), (x(Slice(0, 2), i) - obs_pos)) - obs_r * obs_r;
+        casadi::MX distance = mtimes(
+          (x(Slice(0, 2), i) - obs_pos).T(), (x(
+            Slice(
+              0,
+              2),
+            i) - obs_pos)) - obs_r * obs_r;
         opti.subject_to(distance >= delta(j, i));      // 各障害物に対するスラック変数
         cost += delta(j, i) * p * delta(j, i);         // スラック変数に対するペナルティ項
       }
