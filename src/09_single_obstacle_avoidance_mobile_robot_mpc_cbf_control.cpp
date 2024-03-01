@@ -17,27 +17,28 @@ class MPCNode : public rclcpp::Node
 {
 public:
   MPCNode()
-  : Node("multiple_obstacle_avoidance_mobile_robot_mpc_control")
+  : Node("single_obstacle_avoidance_mobile_robot_mpc_cbf_control")
   {
     // システムパラメータの設定
     dt = 0.1;
     nx = 3;
     nu = 2;
-    N = 10;
+    N = 20;
     P = 200 * casadi::DM::eye(nx);
-    Q = casadi::DM::diag(casadi::DM({10.0, 10.0, 1.0}));
-    R = casadi::DM::diag(casadi::DM({1.0, 0.1}));
+    Q = casadi::DM::diag(casadi::DM({1.0, 1.0, 1.0}));
+    R = casadi::DM::diag(casadi::DM({1.0, 10.0}));
     p = 200;
+    gamma = 0.2;
 
     // 制約の設定
-    umin = casadi::DM({-1, -1});
-    umax = casadi::DM({1, 1});
+    umin = casadi::DM({-2, -1});
+    umax = casadi::DM({2, 1});
 
     // 初期状態の設定
     xTrue = casadi::DM({0.0, 0.0, 0.0});
 
     // 目標値
-    xTarget = casadi::DM({6.0, 3.0, 0.0});
+    xTarget = casadi::DM({6.0, 0.0, 0.0});
 
     // システム行列の設定
     A = casadi::DM::eye(nx);
@@ -47,14 +48,13 @@ public:
         {0.0, dt}});
 
     // 障害物の設定
-    std::vector<casadi::DM> obs_pos_list = {{3.0, 0.0}, {4.0, 0.0}, {4.0, 1.0}};
+    obs_pos = casadi::DM({3.0, 0.0});
     vehicle_diameter = 0.5;
     obs_diameter = 0.5;
     obs_r = vehicle_diameter + obs_diameter;
 
     // 実経路のPublish
-    path_pub =
-      this->create_publisher<nav_msgs::msg::Path>("multiple_obstacle_mobile_robot_path", 50);
+    path_pub = this->create_publisher<nav_msgs::msg::Path>("single_obstacle_mpc_cbf_mobile_robot_path", 50);
     odom_broadcaster = std::make_shared<tf2_ros::TransformBroadcaster>(*this);
 
     // MPCの実行タイマー
@@ -96,9 +96,7 @@ private:
     casadi::Opti opti;
     casadi::MX x = opti.variable(nx, N + 1);
     casadi::MX u = opti.variable(nu, N);
-    // スラック変数の定義（障害物の数 × 時間ステップ数）
-    int num_obstacles = obs_pos_list.size();
-    casadi::MX delta = opti.variable(num_obstacles, N);
+    casadi::MX delta = opti.variable(1, N);
 
     // 目的関数を定義
     casadi::MX cost = 0;
@@ -126,13 +124,16 @@ private:
 
     // 障害物制約条件を定義
     for (int i = 0; i < N; ++i) {
-      for (int j = 0; j < num_obstacles; ++j) {
-        const auto & obs_pos = obs_pos_list[j];
-        casadi::MX distance = mtimes((x(Slice(0, 2), i) - obs_pos).T(), (x(Slice(0, 2), i) - obs_pos)) - obs_r * obs_r;
-        opti.subject_to(distance >= delta(j, i));      // 各障害物に対するスラック変数
-        cost += delta(j, i) * p * delta(j, i);         // スラック変数に対するペナルティ項
-      }
+      casadi::MX b = mtimes((x(Slice(0, 2), i) - obs_pos).T(), (x(Slice(0, 2), i) - obs_pos)) - obs_r * obs_r;
+      casadi::MX b_next = mtimes((x(Slice(0, 2), i + 1) - obs_pos).T(), (x(Slice(0, 2), i + 1) - obs_pos)) - obs_r * obs_r;
+      opti.subject_to(b_next - b + gamma * b >= 0);
     }
+    // for (int i = 0; i < N; ++i) {
+    //   casadi::MX b = mtimes((x(Slice(0, 2), i) - obs_pos).T(), (x(Slice(0, 2), i) - obs_pos)) - obs_r * obs_r;
+    //   casadi::MX b_next = mtimes((x(Slice(0, 2), i + 1) - obs_pos).T(), (x(Slice(0, 2), i + 1) - obs_pos)) - obs_r * obs_r;
+    //   opti.subject_to(b_next - b + gamma * b >= delta(0, i));
+    //   cost += delta(0, i) * p * delta(0, i);
+    // }
 
     // 最適化問題を解く
     opti.minimize(cost);
@@ -231,9 +232,9 @@ private:
   casadi::DM A, B, Q, R, P, xTrue;
   casadi::DM umin, umax;
   casadi::DM xTarget;
-  casadi::DM vehicle_diameter, obs_diameter, obs_r, p;
-  std::vector<casadi::DM> obs_pos_list;
+  casadi::DM obs_pos, vehicle_diameter, obs_diameter, obs_r, p;
   double x, y, th;
+  double gamma;
 };
 
 int main(int argc, char ** argv)
