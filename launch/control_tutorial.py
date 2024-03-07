@@ -6,8 +6,8 @@ from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
-    package_name = 'arcanain_control_tutorial'
-    rviz_file_name = "arcanain_control_tutorial.rviz"
+    package_name = 'runge_kutta'
+    rviz_file_name = "runge_kutta.rviz"
 
     rviz_config_file = PathJoinSubstitution(
         [FindPackageShare(package_name), "rviz", rviz_file_name]
@@ -21,50 +21,20 @@ def generate_launch_description():
         arguments=["-d", rviz_config_file],
     )
 
-    single_obstacle_avoidance_car_mpc_control_node = Node(
+    minimal_publisher_node = Node(
         package=package_name,
-        executable='single_obstacle_avoidance_car_mpc_control',
+        executable='talker',
         output="screen",
     )
-
-    multiple_obstacle_avoidance_car_mpc_control_node = Node(
+    
+    runge_kutta_node = Node(
         package=package_name,
-        executable='multiple_obstacle_avoidance_car_mpc_control',
-        output="screen",
-    )
-
-    single_obstacle_avoidance_mobile_robot_mpc_control_node = Node(
-        package=package_name,
-        executable='single_obstacle_avoidance_mobile_robot_mpc_control',
-        output="screen",
-    )
-
-    multiple_obstacle_avoidance_mobile_robot_mpc_control_node = Node(
-        package=package_name,
-        executable='multiple_obstacle_avoidance_mobile_robot_mpc_control',
-        output="screen",
-    )
-
-    single_obstacle_avoidance_mobile_robot_mpc_cbf_control_node = Node(
-        package=package_name,
-        executable='single_obstacle_avoidance_mobile_robot_mpc_cbf_control',
-        output="screen",
-    )
-
-    multiple_obstacle_avoidance_mobile_robot_mpc_cbf_control_node = Node(
-        package=package_name,
-        executable='multiple_obstacle_avoidance_mobile_robot_mpc_cbf_control',
+        executable='RungeKutta',
         output="screen",
     )
 
     nodes = [
-        rviz_node,
-        single_obstacle_avoidance_car_mpc_control_node,
-        multiple_obstacle_avoidance_car_mpc_control_node,
-        single_obstacle_avoidance_mobile_robot_mpc_control_node,
-        multiple_obstacle_avoidance_mobile_robot_mpc_control_node,
-        single_obstacle_avoidance_mobile_robot_mpc_cbf_control_node,
-        multiple_obstacle_avoidance_mobile_robot_mpc_cbf_control_node,
+        runge_kutta_node,
     ]
 
     return LaunchDescription(nodes)
